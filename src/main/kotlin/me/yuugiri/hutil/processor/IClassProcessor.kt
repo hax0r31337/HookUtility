@@ -1,6 +1,6 @@
 package me.yuugiri.hutil.processor
 
-import me.yuugiri.hutil.obfuscation.ObfuscationMap
+import me.yuugiri.hutil.obfuscation.AbstractObfuscationMap
 import org.objectweb.asm.tree.ClassNode
 
 interface IClassProcessor {
@@ -15,5 +15,5 @@ interface IClassProcessor {
      * apply changes to [klass]
      * @return has changes or not
      */
-    fun processClass(obfuscationMap: ObfuscationMap?, klass: ClassNode): Boolean
+    fun processClass(obfuscationMap: AbstractObfuscationMap?, map: AbstractObfuscationMap.ClassObfuscationRecord, klass: ClassNode): Boolean
 }

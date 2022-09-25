@@ -4,7 +4,7 @@ import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.FieldNode
 import org.objectweb.asm.tree.MethodNode
 
-abstract class ObfuscationMap {
+abstract class AbstractObfuscationMap {
 
     /**
      * @return null when no record found
@@ -40,13 +40,13 @@ abstract class ObfuscationMap {
     }
 
     companion object {
-        fun classObfuscationRecord(obfuscationMap: ObfuscationMap?, klass: ClassNode) =
+        fun classObfuscationRecord(obfuscationMap: AbstractObfuscationMap?, klass: ClassNode) =
             obfuscationMap?.mapClass(klass.name) ?: ClassObfuscationRecord(klass.name, klass.name)
 
-        fun fieldObfuscationRecord(obfuscationMap: ObfuscationMap?, owner: String, field: FieldNode) =
+        fun fieldObfuscationRecord(obfuscationMap: AbstractObfuscationMap?, owner: String, field: FieldNode) =
             obfuscationMap?.mapField(owner, field.name) ?: FieldObfuscationRecord(owner, owner, field.name, field.name)
 
-        fun methodObfuscationRecord(obfuscationMap: ObfuscationMap?, owner: String, method: MethodNode) =
+        fun methodObfuscationRecord(obfuscationMap: AbstractObfuscationMap?, owner: String, method: MethodNode) =
             obfuscationMap?.mapMethod(owner, method.name, method.desc) ?: MethodObfuscationRecord(owner, owner, method.name, method.name, method.desc, method.desc)
     }
 }

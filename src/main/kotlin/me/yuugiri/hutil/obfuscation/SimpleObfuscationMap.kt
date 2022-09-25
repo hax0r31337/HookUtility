@@ -1,23 +1,23 @@
 package me.yuugiri.hutil.obfuscation
 
 /**
- * a simple implementation of [ObfuscationMap] that loads manually
+ * a simple implementation of [AbstractObfuscationMap] that loads manually
  */
-open class SimpleObfuscationMap : ObfuscationMap() {
+open class SimpleObfuscationMap : AbstractObfuscationMap() {
 
-    protected val classRecords = mutableMapOf<String, ObfuscationMap.ClassObfuscationRecord>()
-    protected val fieldRecords = mutableMapOf<String, ObfuscationMap.FieldObfuscationRecord>()
-    protected val methodRecords = mutableMapOf<String, ObfuscationMap.MethodObfuscationRecord>()
+    val classRecords = mutableMapOf<String, ClassObfuscationRecord>()
+    val fieldRecords = mutableMapOf<String, FieldObfuscationRecord>()
+    val methodRecords = mutableMapOf<String, MethodObfuscationRecord>()
 
-    fun addClassRecord(record: ObfuscationMap.ClassObfuscationRecord) {
+    fun addClassRecord(record: ClassObfuscationRecord) {
         classRecords[record.identifier] = record
     }
 
-    fun addFieldRecord(record: ObfuscationMap.FieldObfuscationRecord) {
+    fun addFieldRecord(record: FieldObfuscationRecord) {
         fieldRecords[record.identifier] = record
     }
 
-    fun addMethodRecord(record: ObfuscationMap.MethodObfuscationRecord) {
+    fun addMethodRecord(record: MethodObfuscationRecord) {
         methodRecords[record.identifier] = record
     }
 

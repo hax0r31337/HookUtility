@@ -1,7 +1,7 @@
 package me.yuugiri.hutil
 
-import me.yuugiri.hutil.obfuscation.ObfuscationMap
-import me.yuugiri.hutil.obfuscation.ObfuscationMap.Companion.classObfuscationRecord
+import me.yuugiri.hutil.obfuscation.AbstractObfuscationMap
+import me.yuugiri.hutil.obfuscation.AbstractObfuscationMap.Companion.classObfuscationRecord
 import me.yuugiri.hutil.processor.IClassProcessor
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
@@ -9,7 +9,7 @@ import org.objectweb.asm.tree.ClassNode
 
 class HookUtility {
 
-    val obfuscationMap: ObfuscationMap? = null
+    var obfuscationMap: AbstractObfuscationMap? = null
     val processorList = mutableListOf<IClassProcessor>()
 
     /**
@@ -22,8 +22,8 @@ class HookUtility {
         val classObf = classObfuscationRecord(obfuscationMap, klass)
         var hasProcessed = false
         processorList.forEach {
-            if (!it.selectClass(classObf.name) || (klass.name != classObf.name && !it.selectClass(klass.name))) return@forEach
-            hasProcessed = it.processClass(obfuscationMap, klass) || hasProcessed
+            if (!it.selectClass(classObf.name) && (klass.name != classObf.name && !it.selectClass(klass.name))) return@forEach
+            hasProcessed = it.processClass(obfuscationMap, classObf, klass) || hasProcessed
         }
         return hasProcessed
     }

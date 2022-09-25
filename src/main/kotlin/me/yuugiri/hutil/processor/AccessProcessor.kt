@@ -1,6 +1,6 @@
 package me.yuugiri.hutil.processor
 
-import me.yuugiri.hutil.obfuscation.ObfuscationMap
+import me.yuugiri.hutil.obfuscation.AbstractObfuscationMap
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.tree.ClassNode
 import java.io.BufferedReader
@@ -11,19 +11,24 @@ class AccessProcessor : IClassProcessor {
 
     override fun selectClass(name: String) = records.any { it.owner == name }
 
-    override fun processClass(obfuscationMap: ObfuscationMap?, klass: ClassNode): Boolean {
-        val selectedRecords = records.filter { it.owner == klass.name }
-        if (selectedRecords.isEmpty()) return false
+    override fun processClass(obfuscationMap: AbstractObfuscationMap?, map: AbstractObfuscationMap.ClassObfuscationRecord, klass: ClassNode): Boolean {
+        var name = map.name
+        var selectedRecords = records.filter { it.owner == name }
+        if (selectedRecords.isEmpty()) {
+            name = map.obfuscatedName
+            selectedRecords = records.filter { it.owner == name }
+            if (selectedRecords.isEmpty()) return false
+        }
 
         klass.fields.forEach { field ->
-            val obf = ObfuscationMap.fieldObfuscationRecord(obfuscationMap, klass.name, field)
-            records.forEach { ar ->
+            val obf = AbstractObfuscationMap.fieldObfuscationRecord(obfuscationMap, klass.name, field)
+            selectedRecords.forEach { ar ->
                 if (ar.target == obf.name) {
                     field.access = processAccess(field.access, ar.rules)
                 }
             }
             if (obf.name != field.name) {
-                records.forEach { ar ->
+                selectedRecords.forEach { ar ->
                     if (ar.target == field.name) {
                         field.access = processAccess(field.access, ar.rules)
                     }
@@ -31,16 +36,16 @@ class AccessProcessor : IClassProcessor {
             }
         }
         klass.methods.forEach { method ->
-            val obf = ObfuscationMap.methodObfuscationRecord(obfuscationMap, klass.name, method)
+            val obf = AbstractObfuscationMap.methodObfuscationRecord(obfuscationMap, klass.name, method)
             var id = obf.name + obf.description
-            records.forEach { ar ->
+            selectedRecords.forEach { ar ->
                 if (ar.target == id) {
                     method.access = processAccess(method.access, ar.rules)
                 }
             }
             if (obf.name != method.name) {
                 id = method.name + method.desc
-                records.forEach { ar ->
+                selectedRecords.forEach { ar ->
                     if (ar.target == id) {
                         method.access = processAccess(method.access, ar.rules)
                     }
@@ -88,7 +93,7 @@ class AccessProcessor : IClassProcessor {
         ADD_FINAL
     }
 
-    class AccessRecord(val rules: List<AccessRule>, var owner: String, var target: String)
+    data class AccessRecord(val rules: List<AccessRule>, var owner: String, var target: String)
 
     companion object {
 
@@ -99,8 +104,18 @@ class AccessProcessor : IClassProcessor {
             val processor = AccessProcessor()
 
             at.readLines().forEach {
-                val line = it.substring(0, it.indexOf("#")).trim().split(" ")
+                val line = (if (it.contains("#")) it.substring(0, it.indexOf("#")) else it ).trim().split(" ")
                 if (line.size != 3) return@forEach
+
+                val name = line[2].let {
+                    if (it.contains("(")) {
+                        val desc = it.substring(it.indexOf("("))
+                        val name = it.substring(0, it.indexOf("(")).let { srgs[it] ?: it }
+                        name + desc
+                    } else {
+                        srgs[it] ?: it
+                    }
+                }
 
                 processor.records.add(AccessRecord(mutableListOf<AccessRule>().also {
                     val target = line[0]
@@ -116,7 +131,7 @@ class AccessProcessor : IClassProcessor {
                     } else if (target.endsWith("+f"))  {
                         it.add(AccessRule.ADD_FINAL)
                     }
-                }, line[1].replace('.', '/'), line[2].let { srgs[it] ?: it }))
+                }, line[1].replace('.', '/'), name))
             }
 
             return processor
