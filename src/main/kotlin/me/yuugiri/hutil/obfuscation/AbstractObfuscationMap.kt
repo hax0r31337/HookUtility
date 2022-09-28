@@ -41,12 +41,21 @@ abstract class AbstractObfuscationMap {
 
     companion object {
         fun classObfuscationRecord(obfuscationMap: AbstractObfuscationMap?, klass: ClassNode) =
-            obfuscationMap?.mapClass(klass.name) ?: ClassObfuscationRecord(klass.name, klass.name)
+            classObfuscationRecord(obfuscationMap, klass.name)
+
+        fun classObfuscationRecord(obfuscationMap: AbstractObfuscationMap?, name: String) =
+            obfuscationMap?.mapClass(name) ?: ClassObfuscationRecord(name, name)
 
         fun fieldObfuscationRecord(obfuscationMap: AbstractObfuscationMap?, owner: String, field: FieldNode) =
-            obfuscationMap?.mapField(owner, field.name) ?: FieldObfuscationRecord(owner, owner, field.name, field.name)
+            fieldObfuscationRecord(obfuscationMap, owner, field.name)
+
+        fun fieldObfuscationRecord(obfuscationMap: AbstractObfuscationMap?, owner: String, name: String) =
+            obfuscationMap?.mapField(owner, name) ?: FieldObfuscationRecord(owner, owner, name, name)
 
         fun methodObfuscationRecord(obfuscationMap: AbstractObfuscationMap?, owner: String, method: MethodNode) =
-            obfuscationMap?.mapMethod(owner, method.name, method.desc) ?: MethodObfuscationRecord(owner, owner, method.name, method.name, method.desc, method.desc)
+            methodObfuscationRecord(obfuscationMap, owner, method.name, method.desc)
+
+        fun methodObfuscationRecord(obfuscationMap: AbstractObfuscationMap?, owner: String, name: String, desc: String) =
+            obfuscationMap?.mapMethod(owner, name, desc) ?: MethodObfuscationRecord(owner, owner, name, name, desc, desc)
     }
 }

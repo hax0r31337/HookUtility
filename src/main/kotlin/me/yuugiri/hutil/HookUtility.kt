@@ -32,7 +32,7 @@ class HookUtility {
      * process and inject hooks into [bytes]
      * @return modified class file
      */
-    fun dealWithClassData(bytes: ByteArray): ByteArray {
+    private fun dealWithClassDataDirect(bytes: ByteArray): ByteArray {
         if (processorList.isEmpty()) return bytes // don't waste time to do nothing
 
         // read into ClassNode
@@ -48,5 +48,22 @@ class HookUtility {
         val classWriter = ClassWriter(ClassWriter.COMPUTE_MAXS)
         classNode.accept(classWriter)
         return classWriter.toByteArray()
+    }
+
+    /**
+     * process and inject hooks into [bytes]
+     * @param name **RECOMMENDED** class name
+     * @return modified class file
+     */
+    fun dealWithClassData(bytes: ByteArray, name: String = ""): ByteArray {
+        if (name.isEmpty()) return dealWithClassDataDirect(bytes)
+
+        // check name before process, this will save performance
+        val classObf = classObfuscationRecord(obfuscationMap, name)
+        if (!processorList.any { it.selectClass(name) || it.selectClass(classObf.name) }) {
+            return bytes
+        }
+
+        return dealWithClassDataDirect(bytes)
     }
 }

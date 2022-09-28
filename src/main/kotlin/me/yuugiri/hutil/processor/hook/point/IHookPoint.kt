@@ -7,5 +7,8 @@ import org.objectweb.asm.tree.MethodNode
 
 interface IHookPoint {
 
+    /**
+     * @return AbstractInsnNodes(hook points) that matches the hook rule
+     */
     fun hookPoints(obfuscationMap: AbstractObfuscationMap?, klass: ClassNode, method: MethodNode): List<AbstractInsnNode>
 }
