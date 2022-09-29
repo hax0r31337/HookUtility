@@ -11,11 +11,11 @@ import org.objectweb.asm.tree.MethodNode
  */
 class HookPointTail : IHookPoint {
 
-    override fun hookPoints(obfuscationMap: AbstractObfuscationMap?, klass: ClassNode, method: MethodNode): List<AbstractInsnNode> {
+    override fun hookPoints(obfuscationMap: AbstractObfuscationMap?, klass: ClassNode, method: MethodNode): List<HookInsnPoint> {
         // find last return node
         method.instructions.reversed().forEach {
             if (isReturnNode(it)) {
-                return listOf(it)
+                return listOf(HookInsnPoint(it, isReturn = true))
             }
         }
         return emptyList()

@@ -11,11 +11,11 @@ import org.objectweb.asm.tree.MethodNode
  */
 class HookPointEnter : IHookPoint {
 
-    override fun hookPoints(obfuscationMap: AbstractObfuscationMap?, klass: ClassNode, method: MethodNode): List<AbstractInsnNode> {
+    override fun hookPoints(obfuscationMap: AbstractObfuscationMap?, klass: ClassNode, method: MethodNode): List<HookInsnPoint> {
         // find first label
         method.instructions.forEach {
             if (it is LabelNode) {
-                return listOf(it)
+                return listOf(HookInsnPoint(it))
             }
         }
         return emptyList()

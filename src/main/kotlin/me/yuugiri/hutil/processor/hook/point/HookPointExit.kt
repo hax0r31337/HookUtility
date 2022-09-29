@@ -11,12 +11,12 @@ import org.objectweb.asm.tree.MethodNode
  */
 class HookPointExit : IHookPoint {
 
-    override fun hookPoints(obfuscationMap: AbstractObfuscationMap?, klass: ClassNode, method: MethodNode): List<AbstractInsnNode> {
+    override fun hookPoints(obfuscationMap: AbstractObfuscationMap?, klass: ClassNode, method: MethodNode): List<HookInsnPoint> {
         // find return nodes
-        val nodes = mutableListOf<AbstractInsnNode>()
+        val nodes = mutableListOf<HookInsnPoint>()
         method.instructions.forEach {
             if (isReturnNode(it)) {
-                nodes.add(it)
+                nodes.add(HookInsnPoint(it, isReturn = true))
             }
         }
         return nodes
