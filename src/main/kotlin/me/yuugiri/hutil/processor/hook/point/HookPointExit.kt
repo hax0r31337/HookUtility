@@ -2,6 +2,7 @@ package me.yuugiri.hutil.processor.hook.point
 
 import me.yuugiri.hutil.util.isReturnNode
 import me.yuugiri.hutil.obfuscation.AbstractObfuscationMap
+import me.yuugiri.hutil.processor.hook.HookInsnPoint
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
@@ -16,7 +17,7 @@ class HookPointExit : IHookPoint {
         val nodes = mutableListOf<HookInsnPoint>()
         method.instructions.forEach {
             if (isReturnNode(it)) {
-                nodes.add(HookInsnPoint(it, isReturn = true))
+                nodes.add(HookInsnPoint(it, HookInsnPoint.EnumPointType.RETURN))
             }
         }
         return nodes

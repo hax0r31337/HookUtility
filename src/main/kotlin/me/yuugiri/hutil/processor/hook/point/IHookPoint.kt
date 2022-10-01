@@ -1,7 +1,7 @@
 package me.yuugiri.hutil.processor.hook.point
 
 import me.yuugiri.hutil.obfuscation.AbstractObfuscationMap
-import org.objectweb.asm.tree.AbstractInsnNode
+import me.yuugiri.hutil.processor.hook.HookInsnPoint
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
 

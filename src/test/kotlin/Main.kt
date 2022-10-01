@@ -9,9 +9,9 @@ import javax.tools.ToolProvider
 
 fun main(args: Array<String>) {
     val testFolder = File("./run")
-    packJar(testFolder, "original")
 
     compileTestClass(testFolder)
+    packJar(testFolder, "original")
 
     val hookUtility = HookUtility()
 
@@ -32,6 +32,9 @@ protected-f TheClass methodReturnsInt()I # with obfuscate but without mapping
 
 public-f TheClass field_1 # also can transform fields
     """.trimIndent().reader()), mapOf("method_0" to "methodReturnsString")))
+
+    // custom processor
+    hookUtility.processorList.add(TestProcessor())
 
     listFiles(testFolder).forEach {
         println("Patching ${it.absolutePath}")

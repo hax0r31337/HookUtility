@@ -13,6 +13,11 @@ public class DynaCompile {
     }
 
     private final int b() {
-        return 2099;
+        int b = 1;
+        return (int)this.a + b;
+    }
+
+    private Object test(int a, long b, float c, double d, char e, byte f, short g, boolean h, String i, int[] j) {
+        return new Object[] {a, b, c, d, e, f, g, h, i, j};
     }
 }
