@@ -1,7 +1,5 @@
 package me.yuugiri.hutil.processor.hook
 
-import org.objectweb.asm.tree.MethodNode
-
 abstract class AbstractHookTarget {
 
     /**

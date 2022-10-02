@@ -1,10 +1,10 @@
 package me.yuugiri.hutil.processor.hook.point
 
-import me.yuugiri.hutil.util.isReturnNode
 import me.yuugiri.hutil.obfuscation.AbstractObfuscationMap
 import me.yuugiri.hutil.processor.hook.EnumPointType
 import me.yuugiri.hutil.processor.hook.HookInsnPoint
 import me.yuugiri.hutil.processor.hook.IHookInsnPoint
+import me.yuugiri.hutil.util.isReturnNode
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode

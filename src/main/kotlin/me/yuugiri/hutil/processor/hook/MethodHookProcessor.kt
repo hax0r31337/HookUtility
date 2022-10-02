@@ -6,30 +6,24 @@ import org.objectweb.asm.tree.ClassNode
 
 object MethodHookProcessor : IClassProcessor {
 
-    private val hookInfoMap = hashMapOf<Int, HookInfo>()
+    private val hookInfoList = ArrayList<HookInfo?>()
     private var hookInfoIndex = 0
 
-    /**
-     * immutable
-     */
-    val hookInfoList: Collection<HookInfo>
-        get() = hookInfoMap.values
+    private val hookInfoEntry: List<Pair<Int, HookInfo?>>
+        get() = hookInfoList.mapIndexed { index, hookInfo -> index to hookInfo }
 
     fun addHookInfo(info: HookInfo) {
-        hookInfoMap[hookInfoIndex++] = info
+        hookInfoList.add(hookInfoIndex++, info)
     }
 
     fun removeHookInfo(info: HookInfo) {
-        hookInfoMap.entries.map { it }.forEach { (k, v) ->
-            if (info == v) {
-                removeHookInfo(k)
-                return
-            }
+        if (hookInfoList.contains(info)) {
+            hookInfoList.add(hookInfoList.indexOf(info), null)
         }
     }
 
     fun removeHookInfo(key: Int) {
-        hookInfoMap.remove(key)
+        hookInfoList.add(key, null)
     }
 
     /**
@@ -37,31 +31,38 @@ object MethodHookProcessor : IClassProcessor {
      */
     @JvmStatic
     fun hookCallback(param: MethodHookParam, id: Int) {
-        val info = hookInfoMap[id] ?: return
+        if (id !in 0 until hookInfoList.size) return
+        val info = hookInfoList[id] ?: return
         info.callback(param)
     }
 
-    override fun selectClass(name: String) = hookInfoList.any { it.target.classMatches(name) }
+    override fun selectClass(name: String) = hookInfoList.any { it?.target?.classMatches(name) ?: false }
 
     override fun processClass(obfuscationMap: AbstractObfuscationMap?, map: AbstractObfuscationMap.ClassObfuscationRecord, klass: ClassNode): Boolean {
         var name = map.name
-        var selectedRecords = hookInfoMap.entries.filter { it.value.target.classMatches(name) }
+        val entries = hookInfoEntry
+        var selectedRecords = entries.filter { it.second?.target?.classMatches(name) ?: false }.toMutableList()
         if (selectedRecords.isEmpty()) {
             name = map.obfuscatedName
-            selectedRecords = hookInfoMap.entries.filter { it.value.target.classMatches(name) }
+            selectedRecords = entries.filter { it.second?.target?.classMatches(name) ?: false }.toMutableList()
             if (selectedRecords.isEmpty()) return false
         }
         klass.methods.forEach { method ->
             val obf = AbstractObfuscationMap.methodObfuscationRecord(obfuscationMap, klass.name, method)
-            var hooks = selectedRecords.filter { it.value.target.methodMatches(obf.name, obf.description) }
+            var hooks = selectedRecords.filter { it.second!!.target.methodMatches(obf.name, obf.description) }
             if (hooks.isEmpty() && obf.name != method.name) {
-                hooks = selectedRecords.filter { it.value.target.methodMatches(method.name, method.desc) }
+                hooks = selectedRecords.filter { it.second!!.target.methodMatches(method.name, method.desc) }
             }
-            hooks.forEach { hookInfo ->
-                hookInfo.value.point.hookPoints(obfuscationMap, klass, method).forEach { point ->
-                    point.injectHook(method, hookInfo.key, hookInfo.value.hookShift)
+            hooks.forEach { entry ->
+                val info = entry.second!!
+                info.point.hookPoints(obfuscationMap, klass, method).forEach { point ->
+                    point.injectHook(method, entry.first, info.hookShift)
                 }
+                selectedRecords.remove(entry)
             }
+        }
+        if (selectedRecords.isNotEmpty()) {
+            throw IllegalStateException("some hooks not applied (class=${klass.name}, hook=${selectedRecords.size})")
         }
 
         return true
