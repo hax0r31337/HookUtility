@@ -2,7 +2,9 @@ package me.yuugiri.hutil.processor.hook.point
 
 import me.yuugiri.hutil.util.isReturnNode
 import me.yuugiri.hutil.obfuscation.AbstractObfuscationMap
+import me.yuugiri.hutil.processor.hook.EnumPointType
 import me.yuugiri.hutil.processor.hook.HookInsnPoint
+import me.yuugiri.hutil.processor.hook.IHookInsnPoint
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
@@ -12,11 +14,11 @@ import org.objectweb.asm.tree.MethodNode
  */
 class HookPointTail : IHookPoint {
 
-    override fun hookPoints(obfuscationMap: AbstractObfuscationMap?, klass: ClassNode, method: MethodNode): List<HookInsnPoint> {
+    override fun hookPoints(obfuscationMap: AbstractObfuscationMap?, klass: ClassNode, method: MethodNode): List<IHookInsnPoint> {
         // find last return node
         method.instructions.reversed().forEach {
             if (isReturnNode(it)) {
-                return listOf(HookInsnPoint(it, HookInsnPoint.EnumPointType.RETURN))
+                return listOf(HookInsnPoint(it, EnumPointType.RETURN))
             }
         }
         return emptyList()

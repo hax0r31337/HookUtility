@@ -7,6 +7,7 @@ import org.objectweb.asm.tree.InsnNode
 import org.objectweb.asm.tree.IntInsnNode
 import org.objectweb.asm.tree.LdcInsnNode
 import org.objectweb.asm.tree.MethodInsnNode
+import org.objectweb.asm.tree.TypeInsnNode
 
 /**
  * get matched [AbstractInsnNode] for [num]
@@ -44,21 +45,34 @@ fun isReturnNode(insn: AbstractInsnNode): Boolean {
 }
 
 /**
+ * check if [insn] is a throw point
+ */
+fun isThrowNode(insn: AbstractInsnNode): Boolean {
+    return if (insn is InsnNode) {
+        val opcode = insn.opcode
+        opcode == Opcodes.ATHROW
+    } else {
+        false
+    }
+}
+
+fun getPrimitiveObjectClassName(typeSort: Int) = when(typeSort) {
+    Type.BOOLEAN -> "java/lang/Boolean"
+    Type.CHAR -> "java/lang/Character"
+    Type.BYTE -> "java/lang/Byte"
+    Type.SHORT -> "java/lang/Short"
+    Type.INT -> "java/lang/Integer"
+    Type.FLOAT -> "java/lang/Float"
+    Type.LONG -> "java/lang/Long"
+    Type.DOUBLE -> "java/lang/Double"
+    else -> throw IllegalArgumentException("given type \"$typeSort\" not a primitive type")
+}
+
+/**
  * @throws IllegalArgumentException when [type] not a primitive type
  */
 fun getPrimitiveValueOf(type: Type): AbstractInsnNode {
-    val objectClassName = when(type.sort) {
-        Type.BOOLEAN -> "java/lang/Boolean"
-        Type.CHAR -> "java/lang/Character"
-        Type.BYTE -> "java/lang/Byte"
-        Type.SHORT -> "java/lang/Short"
-        Type.INT -> "java/lang/Integer"
-        Type.FLOAT -> "java/lang/Float"
-        Type.LONG -> "java/lang/Long"
-        Type.DOUBLE -> "java/lang/Double"
-        else -> throw IllegalArgumentException("given type not a primitive type")
-    }
-
+    val objectClassName = getPrimitiveObjectClassName(type.sort)
     return MethodInsnNode(Opcodes.INVOKESTATIC, objectClassName, "valueOf", "(${type.descriptor})L$objectClassName;")
 }
 
@@ -71,4 +85,42 @@ fun getTypeLoadOpcode(typeDescriptor: String): Int {
         Type.DOUBLE_TYPE.descriptor -> Opcodes.DLOAD
         else -> Opcodes.ALOAD
     }
+}
+
+fun getTypeStoreOpcode(typeDescriptor: String): Int {
+    return when(typeDescriptor) {
+        Type.BOOLEAN_TYPE.descriptor, Type.CHAR_TYPE.descriptor, Type.BYTE_TYPE.descriptor,
+        Type.SHORT_TYPE.descriptor, Type.INT_TYPE.descriptor -> Opcodes.ISTORE
+        Type.FLOAT_TYPE.descriptor -> Opcodes.FSTORE
+        Type.LONG_TYPE.descriptor -> Opcodes.LSTORE
+        Type.DOUBLE_TYPE.descriptor -> Opcodes.DSTORE
+        else -> Opcodes.ASTORE
+    }
+}
+
+fun getTypeReturnOpcode(typeDescriptor: String): Int {
+    return when(typeDescriptor) {
+        Type.VOID_TYPE.descriptor -> Opcodes.RETURN
+        Type.BOOLEAN_TYPE.descriptor, Type.CHAR_TYPE.descriptor, Type.BYTE_TYPE.descriptor,
+        Type.SHORT_TYPE.descriptor, Type.INT_TYPE.descriptor -> Opcodes.IRETURN
+        Type.FLOAT_TYPE.descriptor -> Opcodes.FRETURN
+        Type.LONG_TYPE.descriptor -> Opcodes.LRETURN
+        Type.DOUBLE_TYPE.descriptor -> Opcodes.DRETURN
+        else -> Opcodes.ARETURN
+    }
+}
+
+fun castToType(type: Type): List<AbstractInsnNode> {
+    val list = mutableListOf<AbstractInsnNode>()
+    when(type.sort) {
+        Type.OBJECT, Type.ARRAY -> {
+            list.add(TypeInsnNode(Opcodes.CHECKCAST, type.internalName))
+        }
+        else -> { // primitive type
+            val className = getPrimitiveObjectClassName(type.sort)
+            list.add(TypeInsnNode(Opcodes.CHECKCAST, className))
+            list.add(MethodInsnNode(Opcodes.INVOKEVIRTUAL, className, "${type.className}Value", "()${type.descriptor}"))
+        }
+    }
+    return list
 }

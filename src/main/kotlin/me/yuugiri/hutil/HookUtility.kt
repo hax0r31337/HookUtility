@@ -45,7 +45,7 @@ class HookUtility {
         }
 
         // write back to bytecode form
-        val classWriter = ClassWriter(ClassWriter.COMPUTE_MAXS)
+        val classWriter = ClassWriter(ClassWriter.COMPUTE_FRAMES)
         classNode.accept(classWriter)
         return classWriter.toByteArray()
     }

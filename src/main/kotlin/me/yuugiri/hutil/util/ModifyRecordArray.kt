@@ -1,6 +1,6 @@
 package me.yuugiri.hutil.util
 
-class ModifyRecordArray<T>(private val arr: Array<T>) {
+class ModifyRecordArray<T>(private val array: Array<T>) {
 
     /**
      * is the array got modified
@@ -15,10 +15,15 @@ class ModifyRecordArray<T>(private val arr: Array<T>) {
         hasModified = false
     }
 
-    operator fun get(idx: Int) = arr[idx]
+    operator fun get(idx: Int) = array[idx]
 
     operator fun set(idx: Int, item: T) {
-        arr[idx] = item
+        array[idx] = item
         hasModified = true
+    }
+
+    @JvmName("getArray")
+    internal fun getArray(): Array<T> {
+        return array
     }
 }

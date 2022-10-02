@@ -4,9 +4,8 @@ import me.yuugiri.hutil.processor.hook.point.IHookPoint
 
 class HookInfo(
     val target: AbstractHookTarget,
-    val callback: (MethodHookParam) -> Unit,
     val point: IHookPoint,
-    val hookShift: EnumHookShift,
+    val hookShift: EnumHookShift = EnumHookShift.BEFORE,
     /**
      * hook all points when ordinal is -1
      * @throws IllegalArgumentException when ordinal not in -1..points.size
@@ -15,5 +14,6 @@ class HookInfo(
     /**
      * TODO: checks the arguments got modified or not, and gives the fresh arguments
      */
-//    val freshArgs: Boolean = true
+//    val freshArgs: Boolean = true,
+    val callback: (MethodHookParam) -> Unit,
 )

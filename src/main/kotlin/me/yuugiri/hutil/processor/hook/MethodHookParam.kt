@@ -18,7 +18,7 @@ class MethodHookParam(
     /**
      * [Throwable] thrown by the method, or null
      */
-    var throwable: Throwable? = null) {
+    throwableIn: Throwable? = null) {
 
     val args = ModifyRecordArray(argsIn)
 
@@ -30,20 +30,28 @@ class MethodHookParam(
             field = value
         }
 
-
+    private val throwableCanModify = throwableIn != null
+    var throwable = throwableIn
+        set(value) {
+            if (!throwableCanModify) throw IllegalStateException("this not a hook for throwable, consider throw the throwable in your callback code")
+            field = value
+        }
 
     companion object {
 
+        @JvmStatic
         fun raw(thisObject: Any?, args: Array<Any?>): MethodHookParam {
             return MethodHookParam(thisObject, args)
         }
 
+        @JvmStatic
         fun withReturn(result: Any?, thisObject: Any?, args: Array<Any?>): MethodHookParam {
             return MethodHookParam(thisObject, args, resultIn = result)
         }
 
+        @JvmStatic
         fun withThrowable(throwable: Throwable, thisObject: Any?, args: Array<Any?>): MethodHookParam {
-            return MethodHookParam(thisObject, args, throwable = throwable)
+            return MethodHookParam(thisObject, args, throwableIn = throwable)
         }
     }
 }
