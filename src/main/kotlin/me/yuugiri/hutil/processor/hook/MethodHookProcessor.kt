@@ -29,8 +29,9 @@ object MethodHookProcessor : IClassProcessor {
     /**
      * used to receive hooks, DO NOT CALL THIS METHOD MANUALLY
      */
+    @JvmName("hookCallback")
     @JvmStatic
-    fun hookCallback(param: MethodHookParam, id: Int) {
+    internal fun hookCallback(param: MethodHookParam, id: Int) {
         if (id !in 0 until hookInfoList.size) return
         val info = hookInfoList[id] ?: return
         info.callback(param)
