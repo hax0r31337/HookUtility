@@ -9,4 +9,9 @@ platform:
 steps:
 - name: build
   commands:
-  - ./gradlew -Dorg.gradle.java.home=/usr/lib/jvm/zulu8 clean build --no-daemon
+  - ./gradlew -Dorg.gradle.java.home=/usr/lib/jvm/zulu8 clean build publish --no-daemon
+  environment:
+    GPR_USERNAME:
+      from_secret: gpr_username
+    GPR_TOKEN:
+      from_secret: gpr_token
