@@ -38,8 +38,8 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/mccheatz/HookUtility")
             credentials {
-                username = (project.findProperty("gpr.user") ?: System.getenv("GPR_USERNAME")).toString()
-                password = (project.findProperty("gpr.key") ?: System.getenv("GPR_TOKEN")).toString()
+                username = (project.findProperty("gpr.user") ?: System.getenv("GPR_USERNAME") ?: "null").toString()
+                password = (project.findProperty("gpr.key") ?: System.getenv("GPR_TOKEN") ?: "null").toString()
             }
         }
     }
