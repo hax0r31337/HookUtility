@@ -9,5 +9,4 @@ platform:
 steps:
 - name: build
   commands:
-  - ./gradlew -Dorg.gradle.java.home=/usr/lib/jvm/zulu8 clean build
-  - ./gradlew --stop
+  - ./gradlew -Dorg.gradle.java.home=/usr/lib/jvm/zulu8 clean build --no-daemon
