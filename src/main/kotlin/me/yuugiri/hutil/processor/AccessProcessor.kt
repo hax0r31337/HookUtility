@@ -5,6 +5,9 @@ import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.tree.ClassNode
 import java.io.BufferedReader
 
+/**
+ * change accesses like AccessMap in SpecialSource
+ */
 class AccessProcessor : IClassProcessor {
 
     val records = mutableListOf<AccessRecord>()
@@ -20,17 +23,21 @@ class AccessProcessor : IClassProcessor {
             if (selectedRecords.isEmpty()) return false
         }
 
+        selectedRecords.filter { it.target.isEmpty() }.forEach { ar ->
+            klass.access = ar.apply(klass.access)
+        }
+
         klass.fields.forEach { field ->
             val obf = AbstractObfuscationMap.fieldObfuscationRecord(obfuscationMap, klass.name, field)
             selectedRecords.forEach { ar ->
                 if (ar.target == obf.name) {
-                    field.access = processAccess(field.access, ar.rules)
+                    field.access = ar.apply(field.access)
                 }
             }
             if (obf.name != field.name) {
                 selectedRecords.forEach { ar ->
                     if (ar.target == field.name) {
-                        field.access = processAccess(field.access, ar.rules)
+                        field.access = ar.apply(field.access)
                     }
                 }
             }
@@ -40,14 +47,14 @@ class AccessProcessor : IClassProcessor {
             var id = obf.name + obf.description
             selectedRecords.forEach { ar ->
                 if (ar.target == id) {
-                    method.access = processAccess(method.access, ar.rules)
+                    method.access = ar.apply(method.access)
                 }
             }
             if (obf.name != method.name) {
                 id = method.name + method.desc
                 selectedRecords.forEach { ar ->
                     if (ar.target == id) {
-                        method.access = processAccess(method.access, ar.rules)
+                        method.access = ar.apply(method.access)
                     }
                 }
             }
@@ -56,46 +63,76 @@ class AccessProcessor : IClassProcessor {
         return true
     }
 
-    /**
-     * transform method/field access
-     * @param access original access flags
-     * @return transformed access flags
-     */
-    private fun processAccess(access: Int, rules: List<AccessRule>): Int {
-        val t = when {
-            rules.contains(AccessRule.PUBLIC) -> ACC_PUBLIC
-            rules.contains(AccessRule.PRIVATE) -> ACC_PRIVATE
-            rules.contains(AccessRule.PROTECTED) -> ACC_PROTECTED
-            else -> 0
+    class AccessRecord {
+        var vis: Int
+        var clear: Int
+        var set: Int
+        var owner: String
+        var target: String
+
+        constructor(vis: Int, clear: Int, set: Int, owner: String, target: String) {
+            this.vis = vis
+            this.clear = clear
+            this.set = set
+            this.owner = owner
+            this.target = target
         }
 
-        val ret = (access and 7.inv()).let {
-            when (access and 7) {
-                ACC_PRIVATE -> it or t
-                ACC_PROTECTED -> it or (if (t != ACC_PRIVATE && t != 0) t else ACC_PROTECTED)
-                ACC_PUBLIC -> it or ACC_PUBLIC
-                else -> it or (if (t != ACC_PRIVATE) t else 0)
+        /**
+         * load access from SpecialSource format
+         */
+        constructor(rule: String, owner: String, target: String) {
+            this.owner = owner
+            this.target = target
+
+            val parts = rule.split(splitRule)
+
+            // symbol visibility
+            val visibilityString = parts[0]
+            vis = accessCodes[visibilityString] ?: throw IllegalArgumentException("Invalid access visibility: $visibilityString")
+            set = 0
+            clear = 0
+
+            if (parts.size > 1) {
+                // modifiers
+                for (i in 1 until parts.size) {
+                    require(parts[i].length >= 2) { "Invalid modifier length ${parts[i]} in access string: $rule" }
+                    val actionChar = parts[i][0]
+                    val modifierString = parts[i].substring(1)
+                    val modifier = accessCodes[modifierString] ?: throw IllegalArgumentException("Invalid modifier string $modifierString in access string: $rule")
+                    when (actionChar) {
+                        '+' -> set = set or modifier
+                        '-' -> clear = clear or modifier
+                        else -> throw java.lang.IllegalArgumentException("Invalid action $actionChar in access string: $rule")
+                    }
+                }
             }
         }
 
-        return when {
-            rules.contains(AccessRule.REMOVE_FINAL) -> ret and ACC_FINAL.inv()
-            rules.contains(AccessRule.ADD_FINAL) -> ret or ACC_FINAL
-            else -> ret
+        /**
+         * transform access
+         * @param access original access flags
+         * @return transformed access flags
+         */
+        fun apply(access: Int): Int {
+            return (setVisibility(access, upgradeVisibility(access and MASK_ALL_VISIBILITY, vis)) and clear.inv()) or set
         }
     }
 
-    enum class AccessRule {
-        PUBLIC,
-        PRIVATE,
-        PROTECTED,
-        REMOVE_FINAL,
-        ADD_FINAL
-    }
-
-    data class AccessRecord(val rules: List<AccessRule>, var owner: String, var target: String)
-
     companion object {
+
+        private val splitRule = Regex("(?=[+-])")
+        private const val MASK_ALL_VISIBILITY = ACC_PUBLIC or ACC_PRIVATE or ACC_PROTECTED
+        private val accessCodes = mapOf("public" to ACC_PUBLIC,
+            "private" to ACC_PRIVATE, "protected" to ACC_PROTECTED,
+            "default" to 0, "" to 0, "package-private" to 0,
+            "static" to ACC_STATIC, "final" to ACC_FINAL, "f" to ACC_FINAL,
+            "super" to ACC_SUPER, "synchronized" to ACC_SYNCHRONIZED, "volatile" to ACC_VOLATILE,
+            "bridge" to ACC_BRIDGE, "varargs" to ACC_VARARGS, "transient" to ACC_TRANSIENT,
+            "interface" to ACC_INTERFACE, "native" to ACC_NATIVE, "abstract" to ACC_ABSTRACT,
+            "strict" to ACC_STRICT, "synthetic" to ACC_SYNTHETIC, "annotation" to ACC_ANNOTATION,
+            "enum" to ACC_ENUM, "deprecated" to ACC_DEPRECATED)
+        private val visibilityOrder = mapOf(ACC_PRIVATE to 100, 0 to 200, ACC_PROTECTED to 300, ACC_PUBLIC to 400)
 
         /**
          * load [AccessProcessor] from FMLAT format
@@ -103,38 +140,50 @@ class AccessProcessor : IClassProcessor {
         fun fromFMLAccessTransformer(at: BufferedReader, srgs: Map<String, String> = emptyMap()): AccessProcessor {
             val processor = AccessProcessor()
 
-            at.readLines().forEach {
-                val line = (if (it.contains("#")) it.substring(0, it.indexOf("#")) else it ).trim().split(" ")
-                if (line.size != 3) return@forEach
-
-                val name = line[2].let {
-                    if (it.contains("(")) {
-                        val desc = it.substring(it.indexOf("("))
-                        val name = it.substring(0, it.indexOf("(")).let { srgs[it] ?: it }
-                        name + desc
-                    } else {
-                        srgs[it] ?: it
+            at.readLines().forEach { rawLine ->
+                val line = (if (rawLine.contains("#")) rawLine.substring(0, rawLine.indexOf("#")) else rawLine ).trim().split(" ")
+                processor.records.add(if (line.size == 3) {
+                    val name = line[2].let {
+                        if (it.contains("(")) {
+                            val desc = it.substring(it.indexOf("("))
+                            val name = it.substring(0, it.indexOf("(")).let { srgs[it] ?: it }
+                            name + desc
+                        } else {
+                            srgs[it] ?: it
+                        }
                     }
-                }
-
-                processor.records.add(AccessRecord(mutableListOf<AccessRule>().also {
-                    val target = line[0]
-                    if (target.startsWith("public")) {
-                        it.add(AccessRule.PUBLIC)
-                    } else if (target.startsWith("private")) {
-                        it.add(AccessRule.PRIVATE)
-                    } else if (target.startsWith("protected")) {
-                        it.add(AccessRule.PROTECTED)
-                    }
-                    if (target.endsWith("-f")) {
-                        it.add(AccessRule.REMOVE_FINAL)
-                    } else if (target.endsWith("+f"))  {
-                        it.add(AccessRule.ADD_FINAL)
-                    }
-                }, line[1].replace('.', '/'), name))
+                    AccessRecord(line[0], line[1].replace('.', '/'), name)
+                } else if (line.size == 2) {
+                    AccessRecord(line[0], line[1].replace('.', '/'), "")
+                } else return@forEach)
             }
 
             return processor
+        }
+
+        /**
+         * Get modified visibility access, never decreased (either same or higher)
+         *
+         * @param existing The current visibility access
+         * @param desired The new desired target visibility access
+         * @return The greater visibility of the two arguments
+         */
+        private fun upgradeVisibility(existing: Int, desired: Int): Int {
+            val existingOrder = visibilityOrder[existing] ?: throw IllegalArgumentException("Unrecognized visibility: $existing")
+            val desiredOrder = visibilityOrder[desired]  ?: throw IllegalArgumentException("Unrecognized visibility: $desired")
+            val newOrder = existingOrder.coerceAtLeast(desiredOrder)
+            return visibilityOrder.entries.associate { (k, v)-> v to k }.get(newOrder)!!
+        }
+
+        /**
+         * Set visibility on access flags, overwriting existing, preserving other
+         * flags
+         *
+         * @param access
+         * @param visibility
+         */
+        private fun setVisibility(access: Int, visibility: Int): Int {
+            return (access and MASK_ALL_VISIBILITY.inv()) or visibility
         }
     }
 }

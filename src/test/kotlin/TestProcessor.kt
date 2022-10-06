@@ -1,6 +1,5 @@
 import me.yuugiri.hutil.obfuscation.AbstractObfuscationMap
 import me.yuugiri.hutil.processor.IClassProcessor
-import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
 
 class TestProcessor : IClassProcessor {

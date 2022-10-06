@@ -7,13 +7,10 @@ import me.yuugiri.hutil.processor.hook.HookTargetImpl
 import me.yuugiri.hutil.processor.hook.MethodHookProcessor
 import me.yuugiri.hutil.processor.hook.point.HookPointEnter
 import me.yuugiri.hutil.processor.hook.point.HookPointExit
-import me.yuugiri.hutil.processor.hook.point.HookPointTail
 import me.yuugiri.hutil.processor.hook.point.HookPointThrow
 import java.io.BufferedReader
 import java.io.File
 import java.net.URLClassLoader
-import java.util.jar.JarEntry
-import java.util.jar.JarOutputStream
 import javax.tools.ToolProvider
 
 fun main(args: Array<String>) {
@@ -36,7 +33,7 @@ MD: test/DynaCompile/b ()I TheClass/methodReturnsInt ()I
     hookUtility.processorList.add(AccessProcessor.fromFMLAccessTransformer(BufferedReader("""
 # test comment
 public-f TheClass main()V # only with class obfuscate
-public+f TheClass method_0()Ljava/lang/String; # with obfuscate and mapping
+public+f TheClass method_0(I)Ljava/lang/String; # with obfuscate and mapping
 protected-f TheClass methodReturnsInt()I # with obfuscate but without mapping
 
 public-f TheClass field_1 # also can transform fields
