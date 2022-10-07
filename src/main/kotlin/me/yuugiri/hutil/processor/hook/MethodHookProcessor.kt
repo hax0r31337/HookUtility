@@ -56,7 +56,11 @@ object MethodHookProcessor : IClassProcessor {
             }
             hooks.forEach { entry ->
                 val info = entry.second!!
-                info.point.hookPoints(obfuscationMap, klass, method).forEach { point ->
+                val points = info.point.hookPoints(obfuscationMap, klass, method)
+                (if (info.ordinal != -1) {
+                    if (info.ordinal >= points.size) throw IllegalArgumentException("Attempt hook point-${info.ordinal} but only ${points.size} exists")
+                    listOf(points[info.ordinal])
+                } else points).forEach { point ->
                     point.injectHook(method, entry.first, info.hookShift)
                 }
                 selectedRecords.remove(entry)
