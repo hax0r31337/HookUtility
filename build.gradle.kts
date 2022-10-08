@@ -15,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.ow2.asm:asm-tree:9.4")
+    implementation("org.ow2.asm:asm-all:5.0.3")
 }
 
 tasks.withType<KotlinCompile> {

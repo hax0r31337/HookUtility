@@ -3,6 +3,7 @@ package me.yuugiri.hutil.processor.hook.point
 import me.yuugiri.hutil.obfuscation.AbstractObfuscationMap
 import me.yuugiri.hutil.processor.hook.HookInsnPoint
 import me.yuugiri.hutil.processor.hook.IHookInsnPoint
+import me.yuugiri.hutil.util.forEach
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.LabelNode
 import org.objectweb.asm.tree.MethodNode

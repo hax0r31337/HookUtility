@@ -4,6 +4,7 @@ import me.yuugiri.hutil.obfuscation.AbstractObfuscationMap
 import me.yuugiri.hutil.processor.hook.EnumPointType
 import me.yuugiri.hutil.processor.hook.HookInsnPoint
 import me.yuugiri.hutil.processor.hook.IHookInsnPoint
+import me.yuugiri.hutil.util.forEachReversed
 import me.yuugiri.hutil.util.isReturnNode
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.ClassNode
@@ -16,7 +17,7 @@ class HookPointTail : IHookPoint {
 
     override fun hookPoints(obfuscationMap: AbstractObfuscationMap?, klass: ClassNode, method: MethodNode): List<IHookInsnPoint> {
         // find last return node
-        method.instructions.reversed().forEach {
+        method.instructions.forEachReversed {
             if (isReturnNode(it)) {
                 return listOf(HookInsnPoint(it, EnumPointType.RETURN))
             }

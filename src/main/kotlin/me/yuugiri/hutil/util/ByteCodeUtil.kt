@@ -68,7 +68,7 @@ fun getPrimitiveObjectClassName(typeSort: Int) = when(typeSort) {
  */
 fun getPrimitiveValueOf(type: Type): AbstractInsnNode {
     val objectClassName = getPrimitiveObjectClassName(type.sort)
-    return MethodInsnNode(Opcodes.INVOKESTATIC, objectClassName, "valueOf", "(${type.descriptor})L$objectClassName;")
+    return MethodInsnNode(Opcodes.INVOKESTATIC, objectClassName, "valueOf", "(${type.descriptor})L$objectClassName;", false)
 }
 
 fun getTypeLoadOpcode(typeDescriptor: String): Int {
@@ -114,7 +114,7 @@ fun castToType(type: Type): List<AbstractInsnNode> {
         else -> { // primitive type
             val className = getPrimitiveObjectClassName(type.sort)
             list.add(TypeInsnNode(Opcodes.CHECKCAST, className))
-            list.add(MethodInsnNode(Opcodes.INVOKEVIRTUAL, className, "${type.className}Value", "()${type.descriptor}"))
+            list.add(MethodInsnNode(Opcodes.INVOKEVIRTUAL, className, "${type.className}Value", "()${type.descriptor}", false))
         }
     }
     return list

@@ -77,19 +77,19 @@ class HookInsnPoint(
         // construct MethodHookParam
         push(when {
             type == EnumPointType.RETURN && methodType.returnType.descriptor != Type.VOID_TYPE.descriptor ->
-                MethodInsnNode(Opcodes.INVOKESTATIC, "me/yuugiri/hutil/processor/hook/MethodHookParam", "withReturn", "(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)Lme/yuugiri/hutil/processor/hook/MethodHookParam;")
-            type == EnumPointType.THROWN -> MethodInsnNode(Opcodes.INVOKESTATIC, "me/yuugiri/hutil/processor/hook/MethodHookParam", "withThrowable", "(Ljava/lang/Throwable;Ljava/lang/Object;[Ljava/lang/Object;)Lme/yuugiri/hutil/processor/hook/MethodHookParam;")
-            else -> MethodInsnNode(Opcodes.INVOKESTATIC, "me/yuugiri/hutil/processor/hook/MethodHookParam", "raw", "(Ljava/lang/Object;[Ljava/lang/Object;)Lme/yuugiri/hutil/processor/hook/MethodHookParam;")
+                MethodInsnNode(Opcodes.INVOKESTATIC, "me/yuugiri/hutil/processor/hook/MethodHookParam", "withReturn", "(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)Lme/yuugiri/hutil/processor/hook/MethodHookParam;", false)
+            type == EnumPointType.THROWN -> MethodInsnNode(Opcodes.INVOKESTATIC, "me/yuugiri/hutil/processor/hook/MethodHookParam", "withThrowable", "(Ljava/lang/Throwable;Ljava/lang/Object;[Ljava/lang/Object;)Lme/yuugiri/hutil/processor/hook/MethodHookParam;", false)
+            else -> MethodInsnNode(Opcodes.INVOKESTATIC, "me/yuugiri/hutil/processor/hook/MethodHookParam", "raw", "(Ljava/lang/Object;[Ljava/lang/Object;)Lme/yuugiri/hutil/processor/hook/MethodHookParam;", false)
         })
 
         // invoke hook
         push(InsnNode(Opcodes.DUP))
         push(getInsnInt(callbackId))
-        push(MethodInsnNode(Opcodes.INVOKESTATIC, "me/yuugiri/hutil/processor/hook/MethodHookProcessor", "hookCallback", "(Lme/yuugiri/hutil/processor/hook/MethodHookParam;I)V"))
+        push(MethodInsnNode(Opcodes.INVOKESTATIC, "me/yuugiri/hutil/processor/hook/MethodHookProcessor", "hookCallback", "(Lme/yuugiri/hutil/processor/hook/MethodHookParam;I)V", false))
 
         when(type) {
             EnumPointType.THROWN -> {
-                push(MethodInsnNode(Opcodes.INVOKEVIRTUAL, "me/yuugiri/hutil/processor/hook/MethodHookParam", "getThrowable", "()Ljava/lang/Throwable;"))
+                push(MethodInsnNode(Opcodes.INVOKEVIRTUAL, "me/yuugiri/hutil/processor/hook/MethodHookParam", "getThrowable", "()Ljava/lang/Throwable;", false))
                 // cancel the throw process by set throwable in MethodHookParam to null
                 push(InsnNode(Opcodes.DUP))
                 val label1 = LabelNode()
@@ -124,7 +124,7 @@ class HookInsnPoint(
             }
             EnumPointType.RETURN -> {
                 if (methodType.returnType.descriptor != Type.VOID_TYPE.descriptor) {
-                    push(MethodInsnNode(Opcodes.INVOKEVIRTUAL, "me/yuugiri/hutil/processor/hook/MethodHookParam", "getResult", "()Ljava/lang/Object;"))
+                    push(MethodInsnNode(Opcodes.INVOKEVIRTUAL, "me/yuugiri/hutil/processor/hook/MethodHookParam", "getResult", "()Ljava/lang/Object;", false))
                     castToType(methodType.returnType).forEach {
                         push(it)
                     }
@@ -133,12 +133,12 @@ class HookInsnPoint(
             else -> {
                 // check interrupt
                 push(InsnNode(Opcodes.DUP))
-                push(MethodInsnNode(Opcodes.INVOKEVIRTUAL, "me/yuugiri/hutil/processor/hook/MethodHookParam", "getResultModified", "()Z"))
+                push(MethodInsnNode(Opcodes.INVOKEVIRTUAL, "me/yuugiri/hutil/processor/hook/MethodHookParam", "getResultModified", "()Z", false))
                 val label1 = LabelNode()
                 push(JumpInsnNode(Opcodes.IFEQ, label1))
                 val returnOpcode = getTypeReturnOpcode(methodType.returnType.descriptor)
                 if (returnOpcode != Opcodes.RETURN) { // void type
-                    push(MethodInsnNode(Opcodes.INVOKEVIRTUAL, "me/yuugiri/hutil/processor/hook/MethodHookParam", "getResult", "()Ljava/lang/Object;"))
+                    push(MethodInsnNode(Opcodes.INVOKEVIRTUAL, "me/yuugiri/hutil/processor/hook/MethodHookParam", "getResult", "()Ljava/lang/Object;", false))
                     castToType(methodType.returnType).forEach {
                         push(it)
                     }
@@ -148,14 +148,14 @@ class HookInsnPoint(
 
                 // check arguments modify
 //                push(InsnNode(Opcodes.DUP))
-                push(MethodInsnNode(Opcodes.INVOKEVIRTUAL, "me/yuugiri/hutil/processor/hook/MethodHookParam", "getArgs", "()Lme/yuugiri/hutil/util/ModifyRecordArray;"))
+                push(MethodInsnNode(Opcodes.INVOKEVIRTUAL, "me/yuugiri/hutil/processor/hook/MethodHookParam", "getArgs", "()Lme/yuugiri/hutil/util/ModifyRecordArray;", false))
                 push(InsnNode(Opcodes.DUP))
-                push(MethodInsnNode(Opcodes.INVOKEVIRTUAL, "me/yuugiri/hutil/util/ModifyRecordArray", "getHasModified", "()Z"))
+                push(MethodInsnNode(Opcodes.INVOKEVIRTUAL, "me/yuugiri/hutil/util/ModifyRecordArray", "getHasModified", "()Z", false))
                 val label2 = LabelNode()
                 push(JumpInsnNode(Opcodes.IFEQ, label2))
                 // exchange values
                 push(InsnNode(Opcodes.DUP))
-                push(MethodInsnNode(Opcodes.INVOKEVIRTUAL, "me/yuugiri/hutil/util/ModifyRecordArray", "getArray", "()[Ljava/lang/Object;"))
+                push(MethodInsnNode(Opcodes.INVOKEVIRTUAL, "me/yuugiri/hutil/util/ModifyRecordArray", "getArray", "()[Ljava/lang/Object;", false))
                 loadIndex = if (method.access and Opcodes.ACC_STATIC == 0) 1 else 0
                 methodType.argumentTypes.forEachIndexed { index, type ->
                     push(InsnNode(Opcodes.DUP))

@@ -2,6 +2,7 @@ package me.yuugiri.hutil.processor.hook
 
 import me.yuugiri.hutil.obfuscation.AbstractObfuscationMap
 import me.yuugiri.hutil.processor.IClassProcessor
+import me.yuugiri.hutil.util.methods_
 import org.objectweb.asm.tree.ClassNode
 
 object MethodHookProcessor : IClassProcessor {
@@ -48,7 +49,7 @@ object MethodHookProcessor : IClassProcessor {
             selectedRecords = entries.filter { it.second?.target?.classMatches(name) ?: false }.toMutableList()
             if (selectedRecords.isEmpty()) return false
         }
-        klass.methods.forEach { method ->
+        klass.methods_.forEach { method ->
             val obf = AbstractObfuscationMap.methodObfuscationRecord(obfuscationMap, klass.name, method)
             var hooks = selectedRecords.filter { it.second!!.target.methodMatches(obf.name, obf.description) }
             if (hooks.isEmpty() && obf.name != method.name) {

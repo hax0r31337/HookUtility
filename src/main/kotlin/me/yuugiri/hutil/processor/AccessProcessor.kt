@@ -1,6 +1,8 @@
 package me.yuugiri.hutil.processor
 
 import me.yuugiri.hutil.obfuscation.AbstractObfuscationMap
+import me.yuugiri.hutil.util.fields_
+import me.yuugiri.hutil.util.methods_
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.tree.ClassNode
 import java.io.BufferedReader
@@ -27,7 +29,7 @@ class AccessProcessor : IClassProcessor {
             klass.access = ar.apply(klass.access)
         }
 
-        klass.fields.forEach { field ->
+        klass.fields_.forEach { field ->
             val obf = AbstractObfuscationMap.fieldObfuscationRecord(obfuscationMap, klass.name, field)
             selectedRecords.forEach { ar ->
                 if (ar.target == obf.name) {
@@ -42,7 +44,7 @@ class AccessProcessor : IClassProcessor {
                 }
             }
         }
-        klass.methods.forEach { method ->
+        klass.methods_.forEach { method ->
             val obf = AbstractObfuscationMap.methodObfuscationRecord(obfuscationMap, klass.name, method)
             var id = obf.name + obf.description
             selectedRecords.forEach { ar ->
