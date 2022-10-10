@@ -21,21 +21,25 @@ abstract class AbstractObfuscationMap {
      */
     abstract fun mapMethod(owner: String, name: String, desc: String): MethodObfuscationRecord?
 
-    interface RecognizableIdentifier {
-        val identifier: String
+    abstract class RecognizableIdentifier {
+        abstract val identifier: String
+
+        override fun toString(): String {
+            return "${javaClass.simpleName}[${identifier}]"
+        }
     }
 
-    data class ClassObfuscationRecord(val obfuscatedName: String, val name: String) : RecognizableIdentifier {
+    data class ClassObfuscationRecord(val obfuscatedName: String, val name: String) : RecognizableIdentifier() {
         override val identifier = obfuscatedName
     }
 
     data class FieldObfuscationRecord(val obfuscatedOwner: String, val owner: String,
-                                      val obfuscatedName: String, val name: String) : RecognizableIdentifier {
+                                      val obfuscatedName: String, val name: String) : RecognizableIdentifier() {
         override val identifier = "$obfuscatedOwner/$obfuscatedName"
     }
 
     data class MethodObfuscationRecord(val obfuscatedOwner: String, val owner: String, val obfuscatedName: String, val name: String,
-                                      val obfuscatedDesc: String, val description: String) : RecognizableIdentifier {
+                                      val obfuscatedDesc: String, val description: String) : RecognizableIdentifier() {
         override val identifier = "$obfuscatedOwner/$obfuscatedName$obfuscatedDesc"
     }
 
