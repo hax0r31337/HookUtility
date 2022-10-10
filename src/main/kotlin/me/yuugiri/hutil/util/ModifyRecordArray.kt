@@ -8,6 +8,9 @@ class ModifyRecordArray<T>(private val array: Array<T>) {
     var hasModified = false
         private set
 
+    val size: Int
+        get() = array.size
+
     /**
      * set [hasModified] to false
      */
