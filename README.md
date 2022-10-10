@@ -3,5 +3,6 @@ HookUtility is a tool used to hook Java methods by modifying bytecode dynamicall
 
 ## Usage
 Checkout [test](./src/test/kotlin/Main.kt) for examples.  
-If you want a version that working on older asm versions(eg. for Minecraft modding),
-please checkout [oldasm](https://github.com/mccheatz/HookUtility/tree/oldasm) branch.
+**THIS BRANCH IS FOR OLDER ASM VERSIONS, MAY LACK OF SUPPORT!**   
+If you want a version that working on latest asm versions,
+please checkout [main](https://github.com/mccheatz/HookUtility/tree/main) branch.
