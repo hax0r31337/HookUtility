@@ -7,10 +7,6 @@ import org.objectweb.asm.tree.*
 
 interface IHookInsnPoint {
 
-    val node: AbstractInsnNode
-
-    val type: EnumPointType
-
     fun injectHook(method: MethodNode, callbackId: Int, shift: EnumHookShift)
 }
 
@@ -18,8 +14,8 @@ class HookInsnPoint(
     /**
      * AbstractInsnNodes(hook points) that matches the hook rule
      */
-    override val node: AbstractInsnNode,
-    override val type: EnumPointType = EnumPointType.COMMON) : IHookInsnPoint {
+    val node: AbstractInsnNode,
+    val type: EnumPointType = EnumPointType.COMMON) : IHookInsnPoint {
 
     override fun injectHook(method: MethodNode, callbackId: Int, shift: EnumHookShift) {
         val insnList = method.instructions
