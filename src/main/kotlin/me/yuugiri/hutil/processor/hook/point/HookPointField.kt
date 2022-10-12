@@ -10,7 +10,7 @@ import org.objectweb.asm.tree.MethodNode
 /**
  * inject hook at every matched [FieldInsnNode]
  */
-class HookPointField(val matcher: IHookPointMatcher) : IHookPoint {
+class HookPointField(val matcher: IHookPointMatcher, val superclass: String = "") : IHookPoint {
 
     override fun hookPoints(obfuscationMap: AbstractObfuscationMap?, klass: ClassNode, method: MethodNode): List<IHookInsnPoint> {
         val nodes = mutableListOf<IHookInsnPoint>()
@@ -19,8 +19,11 @@ class HookPointField(val matcher: IHookPointMatcher) : IHookPoint {
             if (it is FieldInsnNode) {
                 var id = "${it.owner};${it.name}"
                 if (!matcher.matches(id)) {
-                    val obf = AbstractObfuscationMap.fieldObfuscationRecord(obfuscationMap, it.owner, it.name)
-                    id = "${obf.owner};${obf.name}"
+                    val supercl = if(superclass.isNotEmpty()) {
+                        AbstractObfuscationMap.classObfuscationRecordReverse(obfuscationMap, superclass).obfuscatedName
+                    } else it.owner
+                    val obf = AbstractObfuscationMap.fieldObfuscationRecord(obfuscationMap, supercl, it.name)
+                    id = "${AbstractObfuscationMap.classObfuscationRecord(obfuscationMap, it.owner).name};${obf.name}"
                     if (!matcher.matches(id)) {
                         return@forEach
                     }

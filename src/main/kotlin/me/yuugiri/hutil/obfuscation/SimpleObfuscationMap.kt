@@ -23,6 +23,8 @@ open class SimpleObfuscationMap : AbstractObfuscationMap() {
 
     override fun mapClass(name: String) = classRecords[name]
 
+    override fun reverseMapClass(name: String) = classRecords.values.find { it.name == name }
+
     override fun mapField(owner: String, name: String) = fieldRecords["$owner/$name"]
 
     override fun mapMethod(owner: String, name: String, desc: String) = methodRecords["$owner/$name$desc"]

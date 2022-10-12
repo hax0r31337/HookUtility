@@ -37,7 +37,13 @@ class HookInsnPoint(
             }
         }
 
+        // parse method description to get arguments and return type
+        val methodType = Type.getMethodType(method.desc)
+
         // throwable/return already on stack
+        if (type == EnumPointType.RETURN && methodType.returnType.sort.let{ it != Type.OBJECT && it != Type.ARRAY && it != Type.VOID }) {
+            push(getPrimitiveValueOf(methodType.returnType))
+        }
 
         // push thisObject to stack
         var loadIndex = 0
@@ -47,9 +53,6 @@ class HookInsnPoint(
             push(VarInsnNode(Opcodes.ALOAD, 0))
             loadIndex++
         }
-
-        // parse method description to get arguments and return type
-        val methodType = Type.getMethodType(method.desc)
 
         // create array for arguments
         push(getInsnInt(methodType.argumentTypes.size))
