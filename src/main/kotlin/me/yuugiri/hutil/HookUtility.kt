@@ -22,7 +22,8 @@ class HookUtility {
         val classObf = classObfuscationRecord(obfuscationMap, klass)
         var hasProcessed = false
         processorList.forEach {
-            if (!it.selectClass(classObf.name) && (klass.name != classObf.name && !it.selectClass(klass.name))) return@forEach
+            if (!it.selectClass(classObf.name) && (klass.name == classObf.name || !it.selectClass(klass.name)))
+                return@forEach
             hasProcessed = it.processClass(obfuscationMap, classObf, klass) || hasProcessed
         }
         return hasProcessed
