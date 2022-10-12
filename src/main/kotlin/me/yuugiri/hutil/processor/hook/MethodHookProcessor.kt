@@ -68,9 +68,9 @@ object MethodHookProcessor : IClassProcessor {
                     if (info.ordinal >= points.size) throw IllegalArgumentException("Attempt hook point-${info.ordinal} but only ${points.size} exists")
                     listOf(points[info.ordinal])
                 } else points).forEach { point ->
+                    entry.second.set(true)
                     point.injectHook(method, entry.first.first, info.hookShift)
                 }
-                entry.second.set(true)
             }
         }
         if (selectedRecords.any { !it.second.get() }) {

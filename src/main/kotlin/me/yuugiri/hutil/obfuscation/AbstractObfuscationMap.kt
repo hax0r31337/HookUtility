@@ -11,6 +11,8 @@ abstract class AbstractObfuscationMap {
      */
     abstract fun mapClass(name: String): ClassObfuscationRecord?
 
+    abstract fun reverseMapClass(name: String): ClassObfuscationRecord?
+
     /**
      * @return null when no record found
      */
@@ -49,6 +51,9 @@ abstract class AbstractObfuscationMap {
 
         fun classObfuscationRecord(obfuscationMap: AbstractObfuscationMap?, name: String) =
             obfuscationMap?.mapClass(name) ?: ClassObfuscationRecord(name, name)
+
+        fun classObfuscationRecordReverse(obfuscationMap: AbstractObfuscationMap?, name: String) =
+            obfuscationMap?.reverseMapClass(name) ?: ClassObfuscationRecord(name, name)
 
         fun fieldObfuscationRecord(obfuscationMap: AbstractObfuscationMap?, owner: String, field: FieldNode) =
             fieldObfuscationRecord(obfuscationMap, owner, field.name)

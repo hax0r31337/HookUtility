@@ -111,6 +111,7 @@ fun castToType(type: Type): List<AbstractInsnNode> {
         Type.OBJECT, Type.ARRAY -> {
             list.add(TypeInsnNode(Opcodes.CHECKCAST, type.internalName))
         }
+        Type.VOID -> {}
         else -> { // primitive type
             val className = getPrimitiveObjectClassName(type.sort)
             list.add(TypeInsnNode(Opcodes.CHECKCAST, className))
